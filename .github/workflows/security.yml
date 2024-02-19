@@ -26,14 +26,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
- #   - name: Install Docker
-  #    run: |
-   #     sudo apt-get update
-   #     sudo apt-get install docker.io
-
-    - name: Install Trivy
+    - name: Uninstall containerd
       run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        sudo apt-get remove containerd.io
+        sudo apt-get autoremove
+
+
+    - name: Install Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install docker.io
+
+   # - name: Install Trivy
+   #   run: |
+     #   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
 
     - name: Install yq
@@ -54,7 +60,7 @@ jobs:
           image_repository=$(yq r "$dir/helm/values.yaml" 'image.repository')
           image_tag=$(yq r "$dir/helm/values.yaml" 'image.tag')
           echo "Running Docker scan on $image_repository:$image_tag"
-          trivy image "$image_repository:$image_tag"
+          docker scan "$image_repository:$image_tag" && echo "Succesfully scanned image"
         done
 
     # docker scan "$image_repository:$image_tag"
