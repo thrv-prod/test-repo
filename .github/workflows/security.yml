@@ -26,10 +26,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install Docker
+ #   - name: Install Docker
+  #    run: |
+   #     sudo apt-get update
+   #     sudo apt-get install docker.io
+
+    - name: Install Trivy
       run: |
-        sudo apt-get update
-        sudo apt-get install docker.io
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
 
     - name: Install yq
       run: |
@@ -43,11 +48,14 @@ jobs:
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
         echo "dirs=${dirs}" >> $GITHUB_ENV
 
-    - name: Run Docker Scan
+    - name: Run Trivy Scan
       run: |
         for dir in $(echo "$discover_dirs_b" | tr '\n' ' '); do
           image_repository=$(yq r "$dir/helm/values.yaml" 'image.repository')
           image_tag=$(yq r "$dir/helm/values.yaml" 'image.tag')
           echo "Running Docker scan on $image_repository:$image_tag"
-          docker scan "$image_repository:$image_tag"
+          trivy image "$image_repository:$image_tag"
         done
+
+    # docker scan "$image_repository:$image_tag"
+
