@@ -1,0 +1,47 @@
+name: Security Scans
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - "!**/README.md"
+  pull_request:
+    branches:
+      - main
+    paths: 
+      - "!**/README.md"
+
+jobs:
+  security_scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install docker.io
+
+    - name: Install yq
+      run: |
+        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /tmp/yq
+        sudo chmod +x /tmp/yq
+        sudo mv /tmp/yq /usr/local/bin/yq
+
+    - name: Discover directories
+      id: discover_dirs_b
+      run: |
+        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        echo "::set-output name=dirs::$dirs"
+
+    - name: Run Docker Scan
+      run: |
+        for dir in $(echo "$discover_dirs_b" | tr '\n' ' '); do
+          image_repository=$(yq r "$dir/helm/values.yaml" 'image.repository')
+          image_tag=$(yq r "$dir/helm/values.yaml" 'image.tag')
+          echo "Running Docker scan on $image_repository:$image_tag"
+          docker scan "$image_repository:$image_tag"
+        done
