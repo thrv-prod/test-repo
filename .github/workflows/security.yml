@@ -39,7 +39,7 @@ jobs:
       id: discover_dirs_b
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        echo "::set-output name=dirs::$dirs"
+        echo "dirs=${dirs}" >> $GITHUB_ENV
 
     - name: Run Docker Scan
       run: |
