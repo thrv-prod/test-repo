@@ -10,7 +10,7 @@ namespace: default
 ingress: 
   enabled: false
   className: nginx
-  host: corp.local
+  host: devcorp.local
   privateIssuer: private-ca-issuer
   # set issuer for signing certs
   tls:
