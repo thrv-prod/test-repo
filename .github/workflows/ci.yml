@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - "!**/README.md"
+  pull_request:
+    branches:
+      - main
+    paths: 
+      - "!**/README.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Helm
+      uses: azure/setup-helm@v1
+
+    - name: Discover directories
+      id: discover_dirs
+      run: |
+        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        echo "::set-output name=dirs::$dirs"
+
+    - name: Lint ArgoCD manifests
+      run: |
+        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+          find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
+        done
+
+    - name: Lint Helm charts
+      run: |
+        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+          helm lint "$dir/helm/"
+        done
+
+    - name: Validate Helm charts
+      run: |
+        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+          helm template "$dir/helm/" --validate
+        done
