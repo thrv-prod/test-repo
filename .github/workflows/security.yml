@@ -19,6 +19,7 @@ on:
       - "!**/README.md"
 
 jobs:
+
   security_scan:
     runs-on: ubuntu-latest
     outputs:
@@ -43,12 +44,13 @@ jobs:
       id: discover_dirs_b
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        echo "dirs=${dirs}" >> $GITHUB_ENV
         echo "dirs=${dirs}" >> $GITHUB_OUTPUT
         
     - name: Parse directory
       id: parse_directory
       run: |
-        for dir in ${{ needs.security_scan.outputs.dirs }}; do
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs | tr '\n' ' ' }}; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
@@ -58,7 +60,7 @@ jobs:
 
     - name: Debug `values.yaml` Files
       run: |
-        for dir in ${{ needs.security_scan.outputs.dirs }}; do
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs | tr '\n' ' ' }}; do
           echo "Content of $dir/helm/values.yaml:"
           cat "$dir/helm/values.yaml"
         done
