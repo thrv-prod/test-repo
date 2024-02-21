@@ -39,13 +39,15 @@ jobs:
     #    wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /tmp/yq
       #  sudo chmod +x /tmp/yq
       #  sudo mv /tmp/yq /usr/local/bin/yq
+           # echo "dirs=${dirs}" >> $GITHUB_ENV
 
     - name: Discover directories
       id: discover_dirs_b
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        echo "dirs=${dirs}" >> $GITHUB_ENV
-        echo "dirs=${dirs}" >> $GITHUB_OUTPUT
+         echo "Discovered directories:"
+         echo "$dirs"
+         echo "dirs=${dirs}" >> $GITHUB_OUTPUT
         
     - name: Parse directory
       id: parse_directory
