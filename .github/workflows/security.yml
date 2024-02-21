@@ -67,7 +67,7 @@ jobs:
         
     - name: Debug Image Reference
       run: |
-        echo "Image: ${{ needs.security_scan.outputs.image_repo_tags }}"
+        echo "Image: ${{ steps.parse_directory.outputs.image_repo_tags }}"
 
 
    # - name: Run Trivy vulnerability scanner
