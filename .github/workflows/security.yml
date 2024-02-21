@@ -50,6 +50,7 @@ jobs:
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           echo "image_repository=${image_repository}" >> $GITHUB_ENV
           echo "image_tag=${image_tag}" >> $GITHUB_ENV
+        done
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
