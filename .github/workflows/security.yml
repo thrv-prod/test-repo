@@ -26,27 +26,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Uninstall containerd
+    - name: Install Trivy
       run: |
-        sudo apt-get remove containerd.io
-        sudo apt-get autoremove
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-
-    - name: Install Docker
-      run: |
-        sudo apt-get update
-        sudo apt-get install docker.io
-
-   # - name: Install Trivy
-   #   run: |
-     #   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-
-
-    - name: Install yq
-      run: |
-        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /tmp/yq
-        sudo chmod +x /tmp/yq
-        sudo mv /tmp/yq /usr/local/bin/yq
+   # - name: Install yq
+   #  run: |
+    #    wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /tmp/yq
+      #  sudo chmod +x /tmp/yq
+      #  sudo mv /tmp/yq /usr/local/bin/yq
 
     - name: Discover directories
       id: discover_dirs_b
@@ -56,11 +44,16 @@ jobs:
 
     - name: Run Trivy Scan
       run: |
-        for dir in $(echo "$discover_dirs_b" | tr '\n' ' '); do
-          image_repository=$(yq r "$dir/helm/values.yaml" 'image.repository')
-          image_tag=$(yq r "$dir/helm/values.yaml" 'image.tag')
-          echo "Running Docker scan on $image_repository:$image_tag"
-          docker scan "$image_repository:$image_tag" && echo "Succesfully scanned image"
+        for dir in $(echo "$discover_dirs_b"); do
+          image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
+          image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
+          echo "Running scan on $image_repository:$image_tag"
+          if trivy image "$image_repository:$image_tag"; then
+            echo "Successfully scanned \"$image_repository:$image_tag\""
+          else
+            echo "Failed to scan \"$image_repository:$image_tag\""
+            exit 1
+          fi
         done
 
     # docker scan "$image_repository:$image_tag"
