@@ -44,7 +44,7 @@ jobs:
 
     - name: Run Trivy Scan
       run: |
-        for dir in $(echo "$discover_dirs_b"); do
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           echo "Running scan on $image_repository:$image_tag"
