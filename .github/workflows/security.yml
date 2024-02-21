@@ -56,6 +56,17 @@ jobs:
       run: |
         echo "Image Repository: ${{ steps.parse_directory.outputs.image_repository }}"
         echo "Image Tag: ${{ steps.parse_directory.outputs.image_tag }}"
+    
+    - name: Debug Parsing
+      run: |
+        cat ./paste/helm/values.yaml  # Print the content of the values.yaml file
+        grep repository ./paste/helm/values.yaml  # Check if repository is found
+        grep tag ./paste/helm/values.yaml  # Check if tag is found
+        image_repository=$(grep repository ./paste/helm/values.yaml | awk -F': ' '{print $2}')
+        image_tag=$(grep tag ./paste/helm/values.yaml | awk -F': ' '{print $2}')
+        echo "Parsed Image Repository: $image_repository"
+        echo "Parsed Image Tag: $image_tag"
+
 
    # - name: Run Trivy vulnerability scanner
     #  uses: aquasecurity/trivy-action@master
