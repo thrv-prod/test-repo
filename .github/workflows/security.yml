@@ -21,14 +21,17 @@ on:
 jobs:
   security_scan:
     runs-on: ubuntu-latest
-
+    outputs:
+      image_repo_tags: ${{ steps.parse_directory.outputs.image_repo_tags }}
+      dirs: ${{ steps.discover_dirs_b.outputs.dirs }}
+      
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Install Trivy
-      run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+ #   - name: Install Trivy
+   #   run: |
+     #   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
    # - name: Install yq
    #  run: |
@@ -40,44 +43,29 @@ jobs:
       id: discover_dirs_b
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        echo "dirs=${dirs}" >> $GITHUB_ENV
+        echo "dirs=${dirs}" >> $GITHUB_OUTPUT
         
     - name: Parse directory
       id: parse_directory
       run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
+        for dir in ${{ needs.security_scan.outputs.dirs }}; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
-          echo "image_repository=${image_repository}" >> $GITHUB_ENV
-          echo "image_tag=${image_tag}" >> $GITHUB_ENV
+          image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
         done
+        echo "image_repo_tags=${image_repo_tags}" >> $GITHUB_OUTPUT
 
-    - name: Debug Directories
-      run: |
-        echo "Discovered Directories: ${dirs}"
-        ls -R  # List all files and directories for further inspection
 
     - name: Debug `values.yaml` Files
       run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
+        for dir in ${{ needs.security_scan.outputs.dirs }}; do
           echo "Content of $dir/helm/values.yaml:"
           cat "$dir/helm/values.yaml"
         done
         
     - name: Debug Image Reference
       run: |
-        echo "Image Repository: ${{ steps.parse_directory.outputs.image_repository }}"
-        echo "Image Tag: ${{ steps.parse_directory.outputs.image_tag }}"
-    
-    - name: Debug Parsing
-      run: |
-        cat ./paste/helm/values.yaml  # Print the content of the values.yaml file
-        grep repository ./paste/helm/values.yaml  # Check if repository is found
-        grep tag ./paste/helm/values.yaml  # Check if tag is found
-        image_repository=$(grep repository ./paste/helm/values.yaml | awk -F': ' '{print $2}')
-        image_tag=$(grep tag ./paste/helm/values.yaml | awk -F': ' '{print $2}')
-        echo "Parsed Image Repository: $image_repository"
-        echo "Parsed Image Tag: $image_tag"
+        echo "Image: ${{ needs.security_scan.outputs.image_repo_tags }}"
 
 
    # - name: Run Trivy vulnerability scanner
