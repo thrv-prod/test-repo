@@ -51,6 +51,18 @@ jobs:
           echo "image_repository=${image_repository}" >> $GITHUB_ENV
           echo "image_tag=${image_tag}" >> $GITHUB_ENV
         done
+
+    - name: Debug Directories
+      run: |
+        echo "Discovered Directories: ${dirs}"
+        ls -R  # List all files and directories for further inspection
+
+    - name: Debug `values.yaml` Files
+      run: |
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
+          echo "Content of $dir/helm/values.yaml:"
+          cat "$dir/helm/values.yaml"
+        done
         
     - name: Debug Image Reference
       run: |
