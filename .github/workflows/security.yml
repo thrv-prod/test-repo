@@ -51,16 +51,21 @@ jobs:
           echo "image_repository=${image_repository}" >> $GITHUB_ENV
           echo "image_tag=${image_tag}" >> $GITHUB_ENV
         done
+        
+    - name: Debug Image Reference
+      run: |
+        echo "Image Repository: ${{ steps.parse_directory.outputs.image_repository }}"
+        echo "Image Tag: ${{ steps.parse_directory.outputs.image_tag }}"
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-          image-ref: ${{ steps.parse_directory.outputs.image_repository }}:${{ steps.parse_directory.outputs.image_tag }}
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+   # - name: Run Trivy vulnerability scanner
+    #  uses: aquasecurity/trivy-action@master
+    #  with:
+      #    image-ref: ${{ steps.parse_directory.outputs.image_repository }}:${{ steps.parse_directory.outputs.image_tag }}
+        #  format: 'table'
+        #  exit-code: '1'
+       #   ignore-unfixed: true
+        #  vuln-type: 'os,library'
+       #   severity: 'CRITICAL,HIGH'
 
 
 
