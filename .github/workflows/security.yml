@@ -41,20 +41,27 @@ jobs:
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
         echo "dirs=${dirs}" >> $GITHUB_ENV
-
-    - name: Run Trivy Scan
+        
+    - name: Parse directory
+      id: parse_directory
       run: |
         for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
-          echo "Running scan on $image_repository:$image_tag"
-          if trivy image "$image_repository:$image_tag"; then
-            echo "Successfully scanned \"$image_repository:$image_tag\""
-          else
-            echo "Failed to scan \"$image_repository:$image_tag\""
-            exit 1
-          fi
-        done
+          echo "image_repository=${image_repository}" >> $GITHUB_ENV
+          echo "image_tag=${image_tag}" >> $GITHUB_ENV
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+          image-ref: ${{ steps.parse_directory.outputs.image_repository }}:${{ steps.parse_directory.outputs.image_tag }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+
 
     # docker scan "$image_repository:$image_tag"
 
