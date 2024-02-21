@@ -50,7 +50,7 @@ jobs:
     - name: Parse directory
       id: parse_directory
       run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs | tr '\n' ' ' }}; do
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
@@ -60,7 +60,7 @@ jobs:
 
     - name: Debug `values.yaml` Files
       run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs | tr '\n' ' ' }}; do
+        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
           echo "Content of $dir/helm/values.yaml:"
           cat "$dir/helm/values.yaml"
         done
