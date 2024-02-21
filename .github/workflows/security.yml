@@ -44,10 +44,12 @@ jobs:
     - name: Discover directories
       id: discover_dirs_b
       run: |
-        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-         echo "Discovered directories:"
-         echo "$dirs"
-         echo "dirs=${dirs}" >> $GITHUB_OUTPUT
+        echo "Discovered directories:"
+        find . -type d -exec test -f "{}/helm/values.yaml" \; -print |
+        while IFS= read -r dir; do
+         echo "Processing directory: $dir"
+         echo "Processing directory: $dir" >> $GITHUB_OUTPUT
+        done
         
     - name: Parse directory
       id: parse_directory
