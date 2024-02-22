@@ -62,6 +62,7 @@ jobs:
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
         done
+        image_repo_tags=$(echo "$image_repo_tags" | xargs)
         echo "image_repo_tags=${image_repo_tags}" >> $GITHUB_OUTPUT
 
 
@@ -76,11 +77,20 @@ jobs:
       run: |
         echo "Image: ${{ steps.parse_directory.outputs.image_repo_tags }}"
 
+    - name: Debug Image Reference
+      run: |
+        image_repo_tags="${{ steps.parse_directory.outputs.image_repo_tags }}"
+        for image_ref in $image_repo_tags; do
+          trivy image "$image_ref"
+        done
+          
+        
+
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-          image-ref: ${{ steps.parse_directory.outputs.image_repo_tags }}
+    #      image-ref: ${{ steps.parse_directory.outputs.image_repo_tags }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
