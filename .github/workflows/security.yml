@@ -1,5 +1,9 @@
 name: Security Scans
-
+      #echo "$dirs" | while IFS= read -r dir; do
+     #    echo "Processing directory: $dir"
+     #    all_dirs="${all_dirs}${dir}\n"
+    #     done
+     #    echo -e "All directories:\n$all_dirs"
 on:
   push:
     branches:
@@ -45,11 +49,9 @@ jobs:
       id: discover_dirs_b
       run: |
         echo "Discovered directories:"
-        find . -type d -exec test -f "{}/helm/values.yaml" \; -print |
-        while IFS= read -r dir; do
-         echo "Processing directory: $dir"
-         echo "Processing directory: $dir" >> $GITHUB_OUTPUT
-        done
+        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        for dir in $dirs; do echo "$dir >> $GITHUB_OUTPUT"; done
+        
         
     - name: Parse directory
       id: parse_directory
