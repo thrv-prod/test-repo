@@ -1,9 +1,5 @@
 name: Security Scans
-      #echo "$dirs" | while IFS= read -r dir; do
-     #    echo "Processing directory: $dir"
-     #    all_dirs="${all_dirs}${dir}\n"
-    #     done
-     #    echo -e "All directories:\n$all_dirs"
+
 on:
   push:
     branches:
@@ -37,53 +33,28 @@ jobs:
     - name: Install Trivy
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-
-   # - name: Install yq
-   #  run: |
-    #    wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /tmp/yq
-      #  sudo chmod +x /tmp/yq
-      #  sudo mv /tmp/yq /usr/local/bin/yq
-           # echo "dirs=${dirs}" >> $GITHUB_ENV
-
-#    - name: Discover directories
-#      id: discover_dirs_b
-#      run: |
- #       echo "Discovered directories:"
- #       dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
- #       for dir in $dirs; do echo "$dir" >> $GITHUB_OUTPUT; done
-        
-        
+     
     - name: Run Trivy
-      id: parse_directory
+      id: run_trivy
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
         echo "Discovered directories: " $dirs
         for dir in $dirs; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
-          echo $image_repository:$image_tag
-          trivy image $image_repository:$image_tag
+          if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
+            echo "Scanning image: $image_repository:$image_tag"
+            # Run trivy and capture its code
+            trivy image "$image_repository:$image_tag"
+            trivy_exit_code=$?
+            if [ $trivy_exit_code -ne 0 ]; then
+                echo "Error: Trivy scan failed for image $image_repository:$image_tag"
+                exit $trivy_exit_code
+            fi
+          else
+             echo "Error: Image repository or tag not found in $dir/helm/values.yaml"
+             exit 1
+          fi
         done
 
-
-#    - name: Debug `values.yaml` Files
-#      run: |
-#        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
- #         echo "Content of $dir/helm/values.yaml:"
- #         cat "$dir/helm/values.yaml"
-#        done
-  #image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
-        
-    - name: Debug Image Reference
-      run: |
-        echo "Image: ${{ steps.parse_directory.outputs.image_repo_tags }}"
-
-    - name: Debug Image Reference
-      run: |
-        image_repo_tags="${{ steps.parse_directory.outputs.image_repo_tags }}"
-        for image_ref in $image_repo_tags; do
-          trivy image "$image_ref"
-        done
-
-    # docker scan "$image_repository:$image_tag"
 
