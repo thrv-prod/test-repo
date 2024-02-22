@@ -1,8 +1,8 @@
 ---
 replicaCount: 1
 image:
-  repository: ghcr.io/lcomrade/lenpaste
-  tag: 1.3.1
+  repository: alpine
+  tag: 3.17
 service:
   port: 80
   type: ClusterIP
