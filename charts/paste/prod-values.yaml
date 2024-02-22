@@ -1,0 +1,28 @@
+---
+replicaCount: 1
+image:
+  repository: alpine
+  tag: 3.17
+service:
+  port: 80
+  type: ClusterIP
+namespace: default
+ingress: 
+  enabled: false
+  className: nginx
+  host: corp.local
+  privateIssuer: private-ca-issuer
+  # set issuer for signing certs
+  tls:
+    enabled: true
+persistence:
+  enabled: false
+  storageClassName: ssd
+  size: 300Mi
+resources:
+  requests:
+    memory: "50Mi"
+    cpu: "100m"
+  limits:
+    memory: "150Mi"
+    cpu: "250m"
