@@ -50,7 +50,7 @@ jobs:
       run: |
         echo "Discovered directories:"
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        for dir in $dirs; do echo "$dir >> $GITHUB_OUTPUT"; done
+        for dir in $dirs; do echo "$dir" >> $GITHUB_OUTPUT; done
         
         
     - name: Parse directory
