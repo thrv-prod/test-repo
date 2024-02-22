@@ -48,7 +48,11 @@ jobs:
               echo "$trivy_output"
               exit 1
             fi
+          else
+            echo "Error: Image repository or tag not found in $dir/helm/values.yaml"
           fi
+        done
+
 
     - name: Run Trivy B
       id: run_trivy_prod
@@ -58,8 +62,8 @@ jobs:
         for dir in $dirs_b; do
           # Process values-prod.yml only if different image is defined
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
-            image_repository_prod=$(grep repository "$dir"/helm/values-prod.yaml 2>/dev/null | awk -F': ' '{print $2}')
-            image_tag_prod=$(grep tag "$dir"/helm/values-prod.yaml 2>/dev/null | awk -F': ' '{print $2}')
+            image_repository_prod=$(grep repository "$dir"/helm/values-prod.yml 2>/dev/null | awk -F': ' '{print $2}')
+            image_tag_prod=$(grep tag "$dir"/helm/values-prod.yml 2>/dev/null | awk -F': ' '{print $2}')
             if [ "$image_repository_prod" != "$image_repository" ] || [ "$image_tag_prod" != "$image_tag" ]; then
                 if [ -n "$image_repository_prod" ] && [ -n "$image_tag_prod" ]; then
                   echo "Scanning image: $image_repository_prod:$image_tag_prod"
@@ -74,8 +78,9 @@ jobs:
               fi
             fi
           fi
+        else
+            echo "Error: Image repository or tag not found in $dir/helm/values-prod.yml"
         fi
-
         done
 
 
