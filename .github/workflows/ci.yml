@@ -19,26 +19,25 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v1
 
-    - name: Discover directories
-      id: discover_dirs
-      run: |
-        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        echo "::set-output name=dirs::$dirs"
-
     - name: Lint ArgoCD manifests
       run: |
-        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        for dir in $dirs; do
           find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
         done
 
     - name: Lint Helm charts
       run: |
-        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+        for dir in $dirs; do
           helm lint "$dir/helm/"
         done
 
     - name: Validate Helm charts
       run: |
-        for dir in $(echo "$discover_dirs" | tr '\n' ' '); do
+        for dir in $dirs; do
           helm template "$dir/helm/" --validate
         done
+
+    - name: debug
+      run: | 
+        echo $dirs
