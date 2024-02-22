@@ -44,12 +44,14 @@ jobs:
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             echo "Scanning image: $image_repository:$image_tag"
-            # Run trivy and capture its code
-            trivy image "$image_repository:$image_tag"
-            trivy_exit_code=$?
-            if [ $trivy_exit_code -ne 0 ]; then
-                echo "Error: Trivy scan failed for image $image_repository:$image_tag"
-                exit $trivy_exit_code
+            # Run trivy and capture its output
+            trivy_output=$(trivy image "$image_repository:$image_tag")
+            if echo "$trivy_output" | grep -q "Total: 0"; then
+               echo "No vulnerabilities found in image: $image_repository:$image_tag"
+            else
+              echo "Vulnerabilities found in image: $image_repository:$image_tag"
+              echo "$trivy_output"
+              exit 1
             fi
           else
              echo "Error: Image repository or tag not found in $dir/helm/values.yaml"
