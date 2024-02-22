@@ -50,6 +50,12 @@ jobs:
             fi
           fi
 
+    - name: Run Trivy B
+      id: run_trivy_prod
+      run: |
+        dirs_b=$(find . -type d -exec test -f "{}/helm/values-prod.yml" \; -print)
+        echo "Discovered directories: " $dirs_b
+        for dir in $dirs_b; do
           # Process values-prod.yml only if different image is defined
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             image_repository_prod=$(grep repository "$dir"/helm/values-prod.yaml 2>/dev/null | awk -F': ' '{print $2}')
