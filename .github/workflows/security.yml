@@ -63,6 +63,7 @@ jobs:
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           echo $image_repository:$image_tag
           trivy image $image_repository:$image_tag
+        done
 
 
 #    - name: Debug `values.yaml` Files
