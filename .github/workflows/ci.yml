@@ -20,11 +20,13 @@ jobs:
       uses: azure/setup-helm@v1
 
     - name: Lint ArgoCD manifests
+      id: argo
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
         for dir in $dirs; do
           find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
         done
+        echo "dirs=${dirs}" >> "$GITHUB_OUTPUT"
 
     - name: Lint Helm charts
       run: |
@@ -40,4 +42,4 @@ jobs:
 
     - name: debug
       run: | 
-        echo $dirs
+        echo {{ steps.argo.outputs.dirs }}
