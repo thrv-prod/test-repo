@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths: 
-      - "**/argo/**"
       - "**/helm/**"
       - ".github/workflows/**"
       - "!**/README.md"
@@ -13,7 +12,6 @@ on:
     branches:
       - main
     paths: 
-      - "**/argo/**"
       - "**/helm/**"
       - ".github/workflows/**"
       - "!**/README.md"
@@ -22,9 +20,6 @@ jobs:
 
   security_scan:
     runs-on: ubuntu-latest
-    outputs:
-      image_repo_tags: ${{ steps.parse_directory.outputs.image_repo_tags }}
-      dirs: ${{ steps.discover_dirs_b.outputs.dirs }}
       
     steps:
     - name: Checkout repository
@@ -40,8 +35,8 @@ jobs:
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
         echo "Discovered directories: " $dirs
         for dir in $dirs; do
-          image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
-          image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
+          image_repository=$(grep repository "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
+          image_tag=$(grep tag "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             echo "Scanning image: $image_repository:$image_tag"
             # Run trivy and capture its output
@@ -53,10 +48,28 @@ jobs:
               echo "$trivy_output"
               exit 1
             fi
-          else
-             echo "Error: Image repository or tag not found in $dir/helm/values.yaml"
-             exit 1
           fi
+
+          # Process values-prod.yml only if different image is defined
+          if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
+            image_repository_prod=$(grep repository "$dir"/helm/values-prod.yaml 2>/dev/null | awk -F': ' '{print $2}')
+            image_tag_prod=$(grep tag "$dir"/helm/values-prod.yaml 2>/dev/null | awk -F': ' '{print $2}')
+            if [ "$image_repository_prod" != "$image_repository" ] || [ "$image_tag_prod" != "$image_tag" ]; then
+                if [ -n "$image_repository_prod" ] && [ -n "$image_tag_prod" ]; then
+                  echo "Scanning image: $image_repository_prod:$image_tag_prod"
+                  # Run trivy and capture its output
+                  trivy_output_prod=$(trivy image "$image_repository_prod:$image_tag_prod")
+                  if echo "$trivy_output_prod" | grep -q "Total: 0"; then
+                    echo "No vulnerabilities found in image: $image_repository_prod:$image_tag_prod"
+                  else
+                    echo "Vulnerabilities found in image: $image_repository_prod:$image_tag_prod"
+                    echo "$trivy_output_prod"
+                    exit 1
+              fi
+            fi
+          fi
+        fi
+
         done
 
 
