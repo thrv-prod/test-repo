@@ -57,7 +57,7 @@ jobs:
       id: parse_directory
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        for dir in "$dirs"; do
+        for dir in $dirs; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
