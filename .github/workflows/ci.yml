@@ -26,20 +26,16 @@ jobs:
         for dir in $dirs; do
           find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
         done
-        echo "dirs=${dirs}" >> "$GITHUB_OUTPUT"
+        echo $dirs > /tmp/dirs
 
     - name: Lint Helm charts
       run: |
-        for dir in $dirs; do
+        for dir in $(cat /tmp/dirs); do
           helm lint "$dir/helm/"
         done
 
     - name: Validate Helm charts
       run: |
-        for dir in $dirs; do
+        for dir in $(cat /tmp/dirs); do
           helm template "$dir/helm/" --validate
         done
-
-    - name: debug
-      run: | 
-        echo {{ steps.argo.outputs.dirs }}
