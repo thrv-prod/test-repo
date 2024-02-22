@@ -34,9 +34,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
- #   - name: Install Trivy
-   #   run: |
-     #   curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - name: Install Trivy
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
    # - name: Install yq
    #  run: |
@@ -53,17 +53,16 @@ jobs:
  #       for dir in $dirs; do echo "$dir" >> $GITHUB_OUTPUT; done
         
         
-    - name: Parse directory
+    - name: Run Trivy
       id: parse_directory
       run: |
         dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        echo "Discovered directories: " $dirs
         for dir in $dirs; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
-          image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
-        done
-        image_repo_tags=$(echo "$image_repo_tags" | xargs)
-        echo "image_repo_tags=${image_repo_tags}" >> $GITHUB_OUTPUT
+          echo $image_repository:$image_tag
+          trivy image $image_repository:$image_tag
 
 
 #    - name: Debug `values.yaml` Files
@@ -72,6 +71,7 @@ jobs:
  #         echo "Content of $dir/helm/values.yaml:"
  #         cat "$dir/helm/values.yaml"
 #        done
+  #image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
         
     - name: Debug Image Reference
       run: |
@@ -83,21 +83,6 @@ jobs:
         for image_ref in $image_repo_tags; do
           trivy image "$image_ref"
         done
-          
-        
-
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-    #      image-ref: ${{ steps.parse_directory.outputs.image_repo_tags }}
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
-
 
     # docker scan "$image_repository:$image_tag"
 
