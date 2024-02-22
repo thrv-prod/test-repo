@@ -1,6 +1,6 @@
 ---
 apiVersion: v2
-name: helm
+name: lenpaste
 appVersion: "1.0"
 description: A Helm chart for lenpaste 1.0
 version: 1.0.0
