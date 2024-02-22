@@ -52,6 +52,8 @@ jobs:
             echo "Error: Image repository or tag not found in $dir/helm/values.yaml"
           fi
         done
+        echo "image_repository=${image_repository}" >> GITHUB_ENV
+        echo "image_tag=${image_tag}" >> GITHUB_ENV
 
 
     - name: Run Trivy B
