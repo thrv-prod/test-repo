@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ include "chart.fullname" . }}-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{ include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include "chart.labels" . | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{ include "chart.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: IfNotPresent
+        ports: 
+          - containerPort: 8080
+            protocol: TCP
+        resources:
+          requests:
+            memory: {{ .Values.resources.requests.memory }}
+            cpu: {{ .Values.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.resources.limits.memory }}
+            cpu: {{ .Values.resources.limits.cpu }}
+        volumeMounts:
+          - name: {{ include "chart.fullname" . }}-data
+            mountPath: /data
+      volumes:
+      - name: {{ include "chart.fullname" . }}-data
+      {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "chart.fullname" . }}-data
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
