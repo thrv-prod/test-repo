@@ -61,7 +61,7 @@ jobs:
         echo "Discovered directories: " $dirs_b
         for dir in $dirs_b; do
           image_repository=$(grep repository "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
-          image_tag=$(grep tag "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2
+          image_tag=$(grep tag "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
           # Process values-prod.yml only if different image is defined
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             image_repository_prod=$(grep repository "$dir"/helm/values-prod.yml 2>/dev/null | awk -F': ' '{print $2}')
