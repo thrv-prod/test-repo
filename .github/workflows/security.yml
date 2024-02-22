@@ -45,18 +45,19 @@ jobs:
       #  sudo mv /tmp/yq /usr/local/bin/yq
            # echo "dirs=${dirs}" >> $GITHUB_ENV
 
-    - name: Discover directories
-      id: discover_dirs_b
-      run: |
-        echo "Discovered directories:"
-        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
-        for dir in $dirs; do echo "$dir" >> $GITHUB_OUTPUT; done
+#    - name: Discover directories
+#      id: discover_dirs_b
+#      run: |
+ #       echo "Discovered directories:"
+ #       dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+ #       for dir in $dirs; do echo "$dir" >> $GITHUB_OUTPUT; done
         
         
     - name: Parse directory
       id: parse_directory
       run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
+        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        for dir in "$dirs"; do
           image_repository=$(grep repository "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_tag=$(grep tag "$dir"/helm/values.yaml | awk -F': ' '{print $2}')
           image_repo_tags="${image_repo_tags}${image_repository}:${image_tag}"
@@ -64,12 +65,12 @@ jobs:
         echo "image_repo_tags=${image_repo_tags}" >> $GITHUB_OUTPUT
 
 
-    - name: Debug `values.yaml` Files
-      run: |
-        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
-          echo "Content of $dir/helm/values.yaml:"
-          cat "$dir/helm/values.yaml"
-        done
+#    - name: Debug `values.yaml` Files
+#      run: |
+#        for dir in ${{ steps.discover_dirs_b.outputs.dirs }}; do
+ #         echo "Content of $dir/helm/values.yaml:"
+ #         cat "$dir/helm/values.yaml"
+#        done
         
     - name: Debug Image Reference
       run: |
