@@ -1,20 +1,12 @@
 name: Security Scans
 
 on:
-  push:
-    branches:
-      - main
-    paths: 
-      - "**/helm/**"
-      - ".github/workflows/**"
-      - "!**/README.md"
   pull_request:
     branches:
       - main
     paths: 
-      - "**/helm/**"
+      - "charts/**/helm/**"
       - ".github/workflows/**"
-      - "!**/README.md"
 
 jobs:
 
@@ -84,5 +76,4 @@ jobs:
             echo "Error: Image repository or tag not found in $dir/helm/values-prod.yml"
         fi
         done
-
 
