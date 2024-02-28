@@ -19,4 +19,5 @@ jobs:
           for dir in $dirs; do
           find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
           done
+          echo "Discovered directories: " $dirs
 #          echo $dirs > /tmp/dirs
