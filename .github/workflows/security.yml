@@ -24,11 +24,11 @@ jobs:
     - name: Run Trivy
       id: run_trivy
       run: |
-        dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+        dirs=$(find . -type d -exec test -f "{}/ci/values.yaml" \; -print)
         echo "Discovered directories: " $dirs
         for dir in $dirs; do
-          image_repository=$(grep repository "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
-          image_tag=$(grep tag "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
+          image_repository=$(grep repository "$dir"/ci/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
+          image_tag=$(grep tag "$dir"/ci/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             echo "Scanning image: $image_repository:$image_tag"
             # Run trivy and capture its output
@@ -49,11 +49,11 @@ jobs:
     - name: Run Trivy B
       id: run_trivy_prod
       run: |
-        dirs_b=$(find . -type d -exec test -f "{}/helm/values-prod.yml" \; -print)
+        dirs_b=$(find . -type d -exec test -f "{}/ci/values-prod.yml" \; -print)
         echo "Discovered directories: " $dirs_b
         for dir in $dirs_b; do
-          image_repository=$(grep repository "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
-          image_tag=$(grep tag "$dir"/helm/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
+          image_repository=$(grep repository "$dir"/ci/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
+          image_tag=$(grep tag "$dir"/ci/values.yaml 2>/dev/null | awk -F': ' '{print $2}')
           # Process values-prod.yml only if different image is defined
           if [ -n "$image_repository" ] && [ -n "$image_tag" ]; then
             image_repository_prod=$(grep repository "$dir"/helm/values-prod.yml 2>/dev/null | awk -F': ' '{print $2}')
