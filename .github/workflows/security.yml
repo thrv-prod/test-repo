@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths: 
-      - "charts/**/helm/**"
+      - "charts/**"
       - ".github/workflows/**"
 
 jobs:
