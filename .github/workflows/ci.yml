@@ -15,7 +15,7 @@ jobs:
       - name: Lint ArgoCD manifests
         id: argo
         run: |
-          dirs=$(find . -type d -exec test -f "{}/helm/values.yaml" \; -print)
+          dirs=$(find . -type d -exec test -f "{}/ci/values.yaml" \; -print)
           for dir in $dirs; do
           find "$dir/argo/" -type f \( -name '*.yaml' -o -name '*.yml' \) -exec yamllint {} \;
           done
